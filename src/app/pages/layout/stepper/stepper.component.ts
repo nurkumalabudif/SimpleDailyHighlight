@@ -1,5 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { NbStepperComponent } from '@nebular/theme';
+import { TodoService } from '../todolist.service'
+import { ToastrService } from '../../../_services/toastr.service';
 
 @Component({
   selector: 'ngx-stepper',
@@ -11,8 +14,15 @@ export class StepperComponent implements OnInit {
   firstForm: FormGroup;
   secondForm: FormGroup;
   thirdForm: FormGroup;
+  arrDataTodolist:any = [];
+  firstCtrl: any;
+  secondCtrl: any;
+  @ViewChild('stepper') stepperComponent: NbStepperComponent;
 
-  constructor(private fb: FormBuilder) {
+  constructor(
+    private fb: FormBuilder,  
+    private service : TodoService,
+    private toast: ToastrService,) {
   }
 
   ngOnInit() {
@@ -29,15 +39,24 @@ export class StepperComponent implements OnInit {
     });
   }
 
-  onFirstSubmit() {
-    this.firstForm.markAsDirty();
-  }
-
-  onSecondSubmit() {
+  onSecondSubmit(formData) {
+    this.service.addTodo(formData.secondCtrl).subscribe(
+      res => {
+        this.firstCtrl = res;
+        this.toast.simpleToast(
+          'success',
+          'Seller Upgrade Successfully',
+          '',
+        );
+        this.stepperComponent.next();
+      },
+      err => {
+        const errMessage = err.error.message
+          ? err.error.message
+          : 'Problem Communicating With Servers';
+        this.toast.simpleToast('danger', errMessage, '');
+      },
+    );
     this.secondForm.markAsDirty();
-  }
-
-  onThirdSubmit() {
-    this.thirdForm.markAsDirty();
   }
 }
